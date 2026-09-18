@@ -29,6 +29,12 @@ public:
   std::size_t cols() const{
     return cols_;
   }
+  const double* data() const{
+    return store.data();
+  }
+  double* data() {
+    return store.data();
+  }
 };  
 
 // Apply the five-point stencil over all interior points, copying the boundary
@@ -49,9 +55,14 @@ void apply_stencil(const Grid& old_grid, Grid& new_grid){
   }
 
   for (std::size_t i = 1; i < rows - 1; ++i) {
+    const double* __restrict__ in_prev = old_grid.data() + (i - 1) * cols;
+    const double* __restrict__ in_curr = old_grid.data() + i * cols;
+    const double* __restrict__ in_next = old_grid.data() + (i + 1) * cols;
+    double* __restrict__ out_curr = new_grid.data() + i * cols;
+
     for (std::size_t j = 1; j < cols - 1; ++j) {
-      new_grid(i, j) = 0.5   * old_grid(i, j) + 0.125 * (old_grid(i - 1, j) + old_grid(i + 1, j) +
-                      old_grid(i, j - 1) + old_grid(i, j + 1));
+      out_curr[j] = 0.5   * in_curr[j] + 
+                    0.125 * (in_prev[j] + in_next[j] + in_curr[j - 1] + in_curr[j + 1]);
     }
   }
 }
