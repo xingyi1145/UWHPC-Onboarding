@@ -23,14 +23,35 @@ public:
   double  operator()(std::size_t i, std::size_t j) const{
     return store[i * cols_ + j ];
   }
-  int getR(){
+  std::size_t rows() const{
     return rows_;
   }
-  int getC() {
+  std::size_t cols() const{
     return cols_;
   }
 };  
 
 // Apply the five-point stencil over all interior points, copying the boundary
 // values unchanged from old_grid to new_grid. Implement your solution here.
-void apply_stencil(const Grid& old_grid, Grid& new_grid);
+void apply_stencil(const Grid& old_grid, Grid& new_grid){
+  // copy boundary rows and cols
+  const std::size_t rows = old_grid.rows();
+  const std::size_t cols = old_grid.cols();
+
+  for(std::size_t j = 0; j < cols; j ++){
+    new_grid(0, j) = old_grid(0, j); // top boundary
+    new_grid(rows - 1, j) = old_grid(rows - 1, j); // bottom boundary
+  }
+
+  for (std::size_t i = 1; i < rows - 1; ++i) {
+    new_grid(i, 0) = old_grid(i, 0);            // Left boundary 
+    new_grid(i, cols - 1) = old_grid(i, cols - 1);     // Right boundary 
+  }
+
+  for (std::size_t i = 1; i < rows - 1; ++i) {
+    for (std::size_t j = 1; j < cols - 1; ++j) {
+      new_grid(i, j) = 0.5   * old_grid(i, j) + 0.125 * (old_grid(i - 1, j) + old_grid(i + 1, j) +
+                      old_grid(i, j - 1) + old_grid(i, j + 1));
+    }
+  }
+}
