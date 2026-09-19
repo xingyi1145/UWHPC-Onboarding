@@ -31,33 +31,22 @@ inline AlignedBuffer make_aligned_buffer(std::size_t n) {
 
 // ─── Non-owning grid views ─────────────────────────────────────────────────
 
-struct ConstGridSpan {
-  const double* ptr;
-  std::size_t   rows;
-  std::size_t   cols;
-  std::size_t   stride;
-  bool          boundary_formed;
-
-  const double* row(std::size_t i) const noexcept {
-    // Tell compiler that (ptr - 3) is 64-byte aligned, so it knows
-    // exactly how aligned column 1 is (offset 32 bytes).
-    return static_cast<const double*>(
-        __builtin_assume_aligned(ptr + i * stride - PREFIX_PADDING, 64)) + PREFIX_PADDING;
-  }
-};
-
-struct MutableGridSpan {
-  double*     ptr;
+template <typename T>
+struct GridSpan {
+  T*          ptr;
   std::size_t rows;
   std::size_t cols;
   std::size_t stride;
   bool        boundary_formed;
 
-  double* row(std::size_t i) const noexcept {
-    return static_cast<double*>(
+  T* row(std::size_t i) const noexcept {
+    return static_cast<T*>(
         __builtin_assume_aligned(ptr + i * stride - PREFIX_PADDING, 64)) + PREFIX_PADDING;
   }
 };
+
+using ConstGridSpan   = GridSpan<const double>;
+using MutableGridSpan = GridSpan<double>;
 
 // ─── Grid (owning type) ───────────────────────────────────────────────────
 
